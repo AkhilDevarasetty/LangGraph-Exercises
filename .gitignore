@@ -4,3 +4,7 @@ __pycache__/
 *.pyc
 .DS_Store
 .ipynb_checkpoints/
+
+# ChromaDB vector stores
+chroma_db/
+**/chroma_db/
