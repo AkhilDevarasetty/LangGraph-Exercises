@@ -1,0 +1,190 @@
+%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+/Resources <<
+/Font <<
+/F1 5 0 R
+>>
+>>
+>>
+endobj
+4 0 obj
+<<
+/Length 3200
+>>
+stream
+BT
+/F1 18 Tf
+50 750 Td
+(Python Async/Await Guide) Tj
+0 -30 Td
+/F1 12 Tf
+(========================================) Tj
+0 -25 Td
+(INTRODUCTION TO ASYNC/AWAIT) Tj
+0 -20 Td
+/F1 10 Tf
+(Async/await is Python's way of writing asynchronous code. It allows you to write) Tj
+0 -12 Td
+(concurrent code that can handle multiple tasks without blocking.) Tj
+0 -25 Td
+/F1 12 Tf
+(BASIC ASYNC FUNCTION) Tj
+0 -15 Td
+/F1 10 Tf
+(Here's a simple async function:) Tj
+0 -20 Td
+/F1 9 Tf
+(import asyncio) Tj
+0 -12 Td
+() Tj
+0 -12 Td
+(async def greet\(name\):) Tj
+0 -12 Td
+(    print\(f"Hello, {name}!"\)) Tj
+0 -12 Td
+(    await asyncio.sleep\(1\)) Tj
+0 -12 Td
+(    print\(f"Goodbye, {name}!"\)) Tj
+0 -12 Td
+() Tj
+0 -12 Td
+(# Run the async function) Tj
+0 -12 Td
+(asyncio.run\(greet\("Alice"\)\)) Tj
+0 -25 Td
+/F1 10 Tf
+(The 'async' keyword defines an asynchronous function. The 'await' keyword) Tj
+0 -12 Td
+(pauses execution until the awaited task completes.) Tj
+0 -25 Td
+/F1 12 Tf
+(RUNNING MULTIPLE TASKS) Tj
+0 -15 Td
+/F1 10 Tf
+(You can run multiple async tasks concurrently using asyncio.gather\(\):) Tj
+0 -20 Td
+/F1 9 Tf
+(import asyncio) Tj
+0 -12 Td
+() Tj
+0 -12 Td
+(async def fetch_data\(url\):) Tj
+0 -12 Td
+(    print\(f"Fetching {url}..."\)) Tj
+0 -12 Td
+(    await asyncio.sleep\(2\)  # Simulate network delay) Tj
+0 -12 Td
+(    return f"Data from {url}") Tj
+0 -12 Td
+() Tj
+0 -12 Td
+(async def main\(\):) Tj
+0 -12 Td
+(    urls = ["api.example.com/users", "api.example.com/posts"]) Tj
+0 -12 Td
+(    results = await asyncio.gather\(*[fetch_data\(url\) for url in urls]\)) Tj
+0 -12 Td
+(    for result in results:) Tj
+0 -12 Td
+(        print\(result\)) Tj
+0 -12 Td
+() Tj
+0 -12 Td
+(asyncio.run\(main\(\)\)) Tj
+0 -25 Td
+/F1 10 Tf
+(This code fetches from two URLs concurrently, completing in ~2 seconds) Tj
+0 -12 Td
+(instead of ~4 seconds if done sequentially.) Tj
+0 -25 Td
+/F1 12 Tf
+(ERROR HANDLING IN ASYNC CODE) Tj
+0 -15 Td
+/F1 10 Tf
+(Use try/except blocks just like synchronous code:) Tj
+0 -20 Td
+/F1 9 Tf
+(async def safe_fetch\(url\):) Tj
+0 -12 Td
+(    try:) Tj
+0 -12 Td
+(        result = await fetch_data\(url\)) Tj
+0 -12 Td
+(        return result) Tj
+0 -12 Td
+(    except Exception as e:) Tj
+0 -12 Td
+(        print\(f"Error fetching {url}: {e}"\)) Tj
+0 -12 Td
+(        return None) Tj
+0 -25 Td
+/F1 12 Tf
+(ASYNC CONTEXT MANAGERS) Tj
+0 -15 Td
+/F1 10 Tf
+(For resources that need async setup/teardown:) Tj
+0 -20 Td
+/F1 9 Tf
+(class AsyncDatabase:) Tj
+0 -12 Td
+(    async def __aenter__\(self\):) Tj
+0 -12 Td
+(        await self.connect\(\)) Tj
+0 -12 Td
+(        return self) Tj
+0 -12 Td
+(    ) Tj
+0 -12 Td
+(    async def __aexit__\(self, exc_type, exc_val, exc_tb\):) Tj
+0 -12 Td
+(        await self.disconnect\(\)) Tj
+0 -12 Td
+() Tj
+0 -12 Td
+(async with AsyncDatabase\(\) as db:) Tj
+0 -12 Td
+(    await db.query\("SELECT * FROM users"\)) Tj
+ET
+endstream
+endobj
+5 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+>>
+endobj
+xref
+0 6
+0000000000 65535 f
+0000000009 00000 n
+0000000058 00000 n
+0000000115 00000 n
+0000000274 00000 n
+0000003526 00000 n
+trailer
+<<
+/Size 6
+/Root 1 0 R
+>>
+startxref
+3614
+%%EOF
