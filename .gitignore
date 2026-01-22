@@ -6,5 +6,5 @@ __pycache__/
 .ipynb_checkpoints/
 
 # ChromaDB vector stores
-chroma_db/
-**/chroma_db/
+chroma_db*/
+**/chroma_db*/
