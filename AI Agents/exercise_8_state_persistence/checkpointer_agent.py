@@ -17,7 +17,12 @@ Learning Goals:
 from typing import TypedDict, Annotated, Sequence, Optional
 from dotenv import load_dotenv
 
-from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
+from langchain_core.messages import (
+    BaseMessage,
+    HumanMessage,
+    SystemMessage,
+    RemoveMessage,
+)
 from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, END, START
 from langgraph.graph.message import add_messages
@@ -120,8 +125,10 @@ def create_agent():
 
     # Add nodes and edges
     graph.add_node("llm_node", call_llm)
+    graph.add_node("prune_node", prune_messages)
     graph.add_edge(START, "llm_node")
-    graph.add_edge("llm_node", END)
+    graph.add_edge("llm_node", "prune_node")
+    graph.add_edge("prune_node", END)
 
     # Create checkpointer
     # checkpointer = MemorySaver()
@@ -132,6 +139,41 @@ def create_agent():
 
     # Compile with checkpointer and return
     return compiled_graph, checkpointer
+
+
+def prune_messages(state: AgentState) -> AgentState:
+    """
+    Keep only the last 10 messages to prevent state bloat.
+    Uses RemoveMessage to work with add_messages reducer.
+    """
+    messages = state["messages"]
+
+    if len(messages) <= 10:
+        return {}  ## No pruning needed
+
+    messages_to_remove = []
+
+    messages_to_keep = []
+
+    last_message = messages[-1]
+
+    if isinstance(last_message, SystemMessage):
+        ## Preserving the system message along with the last 9 messages
+        messages_to_keep.append(last_message)
+        messages_to_keep.append(messages[-9:])
+    else:
+        ## Preserving the last 10 messages
+        messages_to_keep.append(messages[-10:])
+
+    ## Getting the ids of the messages to keep
+    kept_ids = {msg.id for msg in messages_to_keep}
+
+    ## Getting the ids of the messages to remove
+    for msg in messages:
+        if msg.id not in kept_ids:
+            messages_to_remove.append(RemoveMessage(id=msg.id))
+
+    return {"messages": messages_to_remove}
 
 
 # ==============================================================================
