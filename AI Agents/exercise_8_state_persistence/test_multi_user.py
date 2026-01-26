@@ -40,11 +40,17 @@ def main():
     # User Bob's conversation
     bob_messages = ["Hello", "I'm Bob", "bob@example.com"]
 
+    # User Charlie's conversation
+    charlie_messages = ["Hi, I need help", "My name is Charlie", "charlie@example.com"]
+
     # Simulate Alice
     alice_thread = simulate_user_conversation(agent, "alice", alice_messages)
 
     # Simulate Bob
     bob_thread = simulate_user_conversation(agent, "bob", bob_messages)
+
+    # Simulate Charlie
+    charlie_thread = simulate_user_conversation(agent, "charlie", charlie_messages)
 
     # Verification: Ask each user "What's my name?"
     print(f"\n{'=' * 80}")
@@ -67,6 +73,14 @@ def main():
     print(f"\nBob asks: 'What's my name?'")
     print(f"🤖 Response: {bob_response['messages'][-1].content}")
 
+    # Charlie asks "What's my name?"
+    charlie_config = {"configurable": {"thread_id": charlie_thread}}
+    charlie_response = agent.invoke(
+        {"messages": [HumanMessage(content="What's my name?")]}, config=charlie_config
+    )
+    print(f"\nCharlie asks: 'What's my name?'")
+    print(f"🤖 Response: {charlie_response['messages'][-1].content}")
+
     # Check isolation
     print(f"\n{'=' * 80}")
     print("📊 RESULTS")
@@ -74,11 +88,13 @@ def main():
 
     alice_knows_name = "alice" in alice_response["messages"][-1].content.lower()
     bob_knows_name = "bob" in bob_response["messages"][-1].content.lower()
+    charlie_knows_name = "charlie" in charlie_response["messages"][-1].content.lower()
 
-    if alice_knows_name and bob_knows_name:
+    if alice_knows_name and bob_knows_name and charlie_knows_name:
         print("✅ TEST PASSED: Complete thread isolation!")
         print("   - Alice's agent remembers 'Alice'")
         print("   - Bob's agent remembers 'Bob'")
+        print("   - Charlie's agent remembers 'Charlie'")
         print("   - No cross-contamination between threads")
     else:
         print("❌ TEST FAILED: Thread isolation broken!")

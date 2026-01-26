@@ -152,18 +152,18 @@ def prune_messages(state: AgentState) -> AgentState:
         return {}  ## No pruning needed
 
     messages_to_remove = []
-
     messages_to_keep = []
 
-    last_message = messages[-1]
+    # Check if first message is SystemMessage (not last!)
+    first_message = messages[0]
 
-    if isinstance(last_message, SystemMessage):
+    if isinstance(first_message, SystemMessage):
         ## Preserving the system message along with the last 9 messages
-        messages_to_keep.append(last_message)
-        messages_to_keep.append(messages[-9:])
+        messages_to_keep.append(first_message)
+        messages_to_keep.extend(messages[-9:])  # ✅ Use extend, not append
     else:
         ## Preserving the last 10 messages
-        messages_to_keep.append(messages[-10:])
+        messages_to_keep.extend(messages[-10:])  # ✅ Use extend, not append
 
     ## Getting the ids of the messages to keep
     kept_ids = {msg.id for msg in messages_to_keep}
