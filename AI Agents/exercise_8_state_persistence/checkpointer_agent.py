@@ -174,6 +174,11 @@ def main():
 
     if checkpoints:
         print(f"\nFound {len(checkpoints)} checkpoints for this thread.")
+        last_state = checkpoints[0].checkpoint
+        if last_state.get("channel_values", {}).get("messages"):
+            messages = last_state["channel_values"]["messages"]
+            if messages:
+                print(f"💬 Last message: {messages[-1].content[:50]}...")
         print("🔄 Resuming conversation...\n")
     else:
         print(
