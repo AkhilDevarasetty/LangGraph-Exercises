@@ -7,6 +7,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.types import interrupt, Command
+from datetime import datetime, timedelta
 
 from dotenv import load_dotenv
 
@@ -22,6 +23,8 @@ class SqlAgentState(TypedDict):
     approved: Optional[bool]
     query_result: Optional[list]
     error: Optional[str]
+    modified_sql_query: Optional[str]
+    approval_requested_at: Optional[str]
 
 
 llm_model = ChatOpenAI(model_name="gpt-4o", temperature=0)
@@ -180,6 +183,8 @@ def approval_node(sql_agent_state: SqlAgentState) -> SqlAgentState:
     - First time: Creates payload and pauses
     - Second time: After resume, returns the approval value
     """
+    if not sql_agent_state.get("approval_requested_at"):
+        sql_agent_state["approval_requested_at"] = datetime.now().isoformat()
 
     approval_payload = {
         "user_question": sql_agent_state["user_question"],
@@ -192,15 +197,30 @@ def approval_node(sql_agent_state: SqlAgentState) -> SqlAgentState:
     # This pauses execution and waits for Command(resume=...)
     human_approval = interrupt(approval_payload)
 
-    return {"approved": human_approval}
+    requested_at = datetime.fromisoformat(sql_agent_state.get("approval_requested_at"))
+    elapsed_time = datetime.now() - requested_at
+
+    if elapsed_time > timedelta(seconds=60):
+        return {
+            "approved": False,
+            "error": "Approval timeout exceeded (60 seconds)",
+        }
+
+    if isinstance(human_approval, dict) and "modified_sql_query" in human_approval:
+        return {
+            "modified_sql_query": human_approval["modified_sql_query"],
+            "approved": True,
+        }
+    else:
+        return {"approved": human_approval}
 
 
 def execute_sql_query(sql_agent_state: SqlAgentState) -> SqlAgentState:
     """Execute the SQL query if approved."""
 
     if not sql_agent_state["approved"]:
-        print("\n❌ Query rejected by user")
-        return {"query_result": None, "error": "Query rejected"}
+        error_msg = sql_agent_state.get("error", "Query rejected")
+        return {"query_result": None, "error": error_msg}
 
     print("\n✅ Executing approved query...")
 
@@ -208,7 +228,16 @@ def execute_sql_query(sql_agent_state: SqlAgentState) -> SqlAgentState:
         conn = sqlite3.connect("hitl_sql.db")
         cursor = conn.cursor()
 
-        cursor.execute(sql_agent_state["generated_sql_query"])
+        query = sql_agent_state.get("modified_sql_query") or sql_agent_state.get(
+            "generated_sql_query"
+        )
+
+        if sql_agent_state.get("modified_sql_query"):
+            print("\n✅ Modified query executed by user")
+        else:
+            print("\n✅ Generated query executed")
+
+        cursor.execute(query)
 
         # For SELECT, fetch results
         if sql_agent_state["query_type"] == "SELECT":
@@ -317,12 +346,20 @@ def main():
             print("\n" + "─" * 80)
 
             # Ask user for approval
-            approval = input("👤 Approve this query? (yes/no): ").strip().lower()
+            approval = input("👤 Approve this query? (yes/no/edit): ").strip().lower()
 
             if approval in ["yes", "y"]:
                 print("\n✅ Query approved - executing...")
                 # Resume with approval
                 final_result = agent.invoke(Command(resume=True), config=config)
+            elif approval in ["edit", "e"]:
+                edited_sql = input("\n📝 Enter the modified SQL query: ").strip()
+                print("\n📝 Query edited - re-executing...")
+                # Resume with edit
+                final_result = agent.invoke(
+                    Command(resume={"modified_sql_query": edited_sql}),
+                    config=config,
+                )
             else:
                 print("\n❌ Query rejected - not executing")
                 # Resume with rejection
